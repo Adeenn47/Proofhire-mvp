@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ProofHire MVP</title>
+<style>
+:root{--bg:#f7f7fb;--fg:#1c1c28;--card:#fff;--mut:#666;--ok:#16794c;--bad:#b3261e;--ac:#4f46e5;--bd:#ddd;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14141c;--fg:#eee;--card:#1e1e2a;--mut:#9a9ab0;--ok:#4ade80;--bad:#f87171;--ac:#818cf8;--bd:#33334a}}
+:root[data-theme="dark"]{--bg:#14141c;--fg:#eee;--card:#1e1e2a;--mut:#9a9ab0;--ok:#4ade80;--bad:#f87171;--ac:#818cf8;--bd:#33334a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:12px 0}
+h1{margin:8px 0 0}h2{font-size:16px;margin:0 0 8px}p{color:var(--mut);margin:4px 0}
+textarea{width:100%;box-sizing:border-box;min-height:110px;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px;font:inherit}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.r{border-top:1px solid var(--bd);padding:8px 0}small{color:var(--mut)}
+</style></head><body><main>
+<h1>ProofHire</h1><p>MVP demo: paste a job description and your real work. No login needed. Runs fully in your browser.</p>
+<div class="c"><h2>1. Job description</h2><textarea id="jd">We need an AI Engineer Associate with strong Python, SQL and machine learning skills. Experience with Docker, FastAPI, Git and RAG pipelines is a plus. Cloud (AWS) is preferred.</textarea></div>
+<div class="c"><h2>2. Your evidence (CV lines, projects, repos)</h2><textarea id="ev">Built a churn prediction model in Python with scikit-learn on a 50k-row dataset.
+Wrote SQL queries with joins and window functions for a sales dashboard.
+Managed code in Git and GitHub across 3 team projects.
+Interned as AI developer and documentation intern at a government IT board.</textarea></div>
+<div class="c"><h2>3. Draft claims to verify (one per line)</h2><textarea id="cl">Expert in Python and machine learning
+Deployed APIs with Docker and FastAPI
+Strong SQL skills</textarea></div>
+<button onclick="run()">Analyze</button>
+<div class="c" id="gap" hidden></div><div class="c" id="ver" hidden></div>
+</main><script>
+const S={Python:[["python"],"Build a CLI in Python that cleans a CSV and prints a summary report."],
+SQL:[["sql","postgres","mysql"],"Design a 3-table schema and write 10 analytical queries with joins and window functions."],
+"Machine learning":[["machine learning","scikit-learn","ml"],"Train and compare 3 models on a public dataset and write up the results."],
+Docker:[["docker","container"],"Containerize one of your projects and run it with docker compose."],
+FastAPI:[["fastapi","flask","rest api"],"Expose a trained model through a FastAPI endpoint with input validation."],
+Git:[["git","github"],"Publish a project with a clear README and meaningful commit history."],
+RAG:[["rag","retrieval","vector"],"Build a Q&A bot over 10 PDFs using embeddings and a vector store."],
+AWS:[["aws","cloud","gcp","azure"],"Deploy a small app on a free-tier cloud service and document the steps."],
+"Deep learning":[["deep learning","pytorch","tensorflow"],"Fine-tune a small pretrained model on a custom dataset."],
+Airflow:[["airflow","etl","pipeline"],"Schedule a daily ETL job in Airflow that loads data into a database."]};
+const e=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const has=(t,a)=>a.some(x=>new RegExp("(^|[^a-z])"+x+"([^a-z]|$)").test(t));
+function find(ev,a){return ev.split(/\n|\.\s/).find(l=>has(l.toLowerCase(),a))}
+function run(){
+const jd=document.getElementById("jd").value.toLowerCase(),ev=document.getElementById("ev").value,
+req=Object.keys(S).filter(k=>has(jd,S[k][0]));
+let g="<h2>Skill gap map</h2>",ok=0;
+req.forEach(k=>{const f=find(ev,S[k][0]);if(f){ok++;g+=`<div class="r"><b class="ok">✔ ${k}</b><br><small>Evidence: ${e(f)}</small></div>`}
+else g+=`<div class="r"><b class="bad">✖ ${k}</b> (gap)<br><small>2–5 day micro-project: ${S[k][1]}</small></div>`});
+g=`<h2>Skill gap map</h2><p>${ok} of ${req.length} required skills have evidence.</p>`+g.slice(g.indexOf("</h2>")+5);
+const gp=document.getElementById("gap");gp.innerHTML=req.length?g:"<p>No known skills found in the job description.</p>";gp.hidden=false;
+let v="<h2>Claim verifier</h2>";
+document.getElementById("cl").value.split("\n").filter(x=>x.trim()).forEach(l=>{
+const sk=Object.keys(S).filter(k=>has(l.toLowerCase(),S[k][0])),bad=sk.filter(k=>!find(ev,S[k][0]));
+v+=`<div class="r">${e(l)}<br>`+(!sk.length?"<small>No skill claim detected.</small>":bad.length?`<b class="bad">✖ Unsupported: ${bad.join(", ")}</b> <small>Add real evidence or remove this claim.</small>`:`<b class="ok">✔ Verified against your evidence</b>`)+"</div>"});
+const vp=document.getElementById("ver");vp.innerHTML=v;vp.hidden=false}
+run()
+</script></body></html>
